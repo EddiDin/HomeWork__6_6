@@ -34,16 +34,41 @@ namespace HomeWork__6_6
             }
 
             Console.WriteLine();
-            Console.WriteLine($"Число успешно считано/введено - {number}");
-
+            Console.WriteLine($"Число успешно считано/введено: {number}");
 
 
             int groupsCount = GetGroupsCountByNumber(number);
-            Console.WriteLine($"Число групп  - {groupsCount}");
+            Console.WriteLine($"Число групп: {groupsCount}");
 
-            WriteGroupsToFile(number, groupsCount);
+            Console.WriteLine();
+            if (IsUserConfirm("Хотите ли вы записать группы в файл?")) {
+                Console.WriteLine();
+                Console.WriteLine("Запись групп в файл...");
+                WriteGroupsToFile(number, groupsCount);
+                Console.WriteLine($"Все группы успешно записаны в файл.");
+                Console.WriteLine();
+
+                if (IsUserConfirm("Архивировать получившийся файл?"))
+                {
+                    Console.WriteLine("Файл заархивирован успешно.");
+                }
+            }
 
             Console.ReadKey();
+        }
+
+        static bool IsUserConfirm(string message) {
+            Console.WriteLine(message + " Введите \"д\"(Да) или \"н\"(Нет):");
+            while (true) {
+                string userInput = Console.ReadLine();
+                if (userInput != "д" && userInput != "н") {
+                    Console.WriteLine("Ошибка при вводе. Введите символ \"д\" или символ \"н\".");
+                    continue;
+                }
+
+                return userInput == "д";
+            }
+            
         }
 
         static void WriteGroupsToFile(int number, int groupsCount)
@@ -71,14 +96,12 @@ namespace HomeWork__6_6
                     number = numberInHalf;
                 }
 
-                if (number == 1) {
+                if (number == 1)
+                {
                     sw.WriteLine($"Группа {++counter}: {number}");
                     Console.WriteLine($"Записано групп {counter}/{groupsCount}");
                 }
-
             }
-
-            Console.WriteLine($"Все группы успешно записаны в файл {fileName}");
         }
 
         static int GetGroupsCountByNumber(int number)
