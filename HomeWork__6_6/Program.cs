@@ -1,34 +1,33 @@
 ﻿using System;
 using System.IO;
 using System.Text.RegularExpressions;
+using System.Diagnostics;
+using System.IO.Compression;
 
 namespace HomeWork__6_6
 {
     class Program
     {
+        static readonly string inputFileName = "data.txt";
+
+        static readonly string outputFileName = "output.txt";
+
+        static readonly string archiveFileName = "output.zip";
+
         static void Main(string[] args)
         {
-            int number = default;
-
-            if (!File.Exists("data.txt"))
+            int number;
+            if (!File.Exists(inputFileName))
             {
                 Console.WriteLine("Файл, в котором должно быть число, не обнаружен. Введите число с клавиатуры:");
                 number = EnterNumber();
             }
             else
             {
-                string data = Regex.Replace(File.ReadAllText("data.txt"), "[^0-9]", "", RegexOptions.IgnoreCase);
-                bool successParse = Int32.TryParse(data, out number);
-
-                if (!successParse)
+                bool isGetNumber = TryGetNumberFromFile(inputFileName, out number, out string message);
+                if (!isGetNumber)
                 {
-                    Console.WriteLine("Ошибка. Не удалось получить число из файла. Проверьте файл.");
-                    return;
-                }
-
-                if (!IsValidNumber(number))
-                {
-                    Console.WriteLine($"Ошибка. Полученное число из файла не удовлетворяет условиям задачи ({number}). Число должно быть в диапазоне от 1 до 1000000000.");
+                    Console.WriteLine(message);
                     return;
                 }
             }
@@ -36,44 +35,76 @@ namespace HomeWork__6_6
             Console.WriteLine();
             Console.WriteLine($"Число успешно считано/введено: {number}");
 
-
             int groupsCount = GetGroupsCountByNumber(number);
             Console.WriteLine($"Число групп: {groupsCount}");
 
             Console.WriteLine();
-            if (IsUserConfirm("Хотите ли вы записать группы в файл?")) {
+            if (IsUserConfirm("Хотите ли вы записать группы в файл?"))
+            {
                 Console.WriteLine();
-                Console.WriteLine("Запись групп в файл...");
-                WriteGroupsToFile(number, groupsCount);
-                Console.WriteLine($"Все группы успешно записаны в файл.");
+                Console.WriteLine($"Запись групп в файл {outputFileName} ...");
+                WriteGroupsToFile(outputFileName, number, groupsCount);
+                FileInfo outputFileInfo = new FileInfo(outputFileName);
+                Console.WriteLine($"Все группы успешно записаны в файл {outputFileName}. Размер файла на диске = {outputFileInfo.Length / 1024} Кб.");
                 Console.WriteLine();
 
                 if (IsUserConfirm("Архивировать получившийся файл?"))
                 {
-                    Console.WriteLine("Файл заархивирован успешно.");
+                    using (ZipArchive zipArchive = ZipFile.Open(archiveFileName, ZipArchiveMode.Create))
+                    {
+                        zipArchive.CreateEntryFromFile(outputFileName, outputFileName);
+                    }
+
+                    FileInfo archiveFileInfo = new FileInfo(archiveFileName);
+                    Console.WriteLine($"Файл заархивирован успешно. Размер архива на диске = {archiveFileInfo.Length / 1024} Кб.");
                 }
             }
 
             Console.ReadKey();
         }
 
-        static bool IsUserConfirm(string message) {
+        static bool TryGetNumberFromFile(string fileName, out int number, out string message)
+        {
+            message = "";
+            string data = Regex.Replace(File.ReadAllText("data.txt"), "[^0-9]", "", RegexOptions.IgnoreCase);
+            bool successParse = Int32.TryParse(data, out number);
+
+            if (!successParse)
+            {
+                message = "Ошибка. Не удалось получить число из файла. Проверьте файл.";
+                return false;
+            }
+
+            if (!IsValidNumber(number))
+            {
+                message = $"Ошибка. Полученное число из файла не удовлетворяет условиям задачи ({number}). Число должно быть в диапазоне от 1 до 1000000000.";
+                return false;
+            }
+
+            return true;
+        }
+
+        static bool IsUserConfirm(string message)
+        {
             Console.WriteLine(message + " Введите \"д\"(Да) или \"н\"(Нет):");
-            while (true) {
+            while (true)
+            {
                 string userInput = Console.ReadLine();
-                if (userInput != "д" && userInput != "н") {
+                if (userInput != "д" && userInput != "н")
+                {
                     Console.WriteLine("Ошибка при вводе. Введите символ \"д\" или символ \"н\".");
                     continue;
                 }
 
                 return userInput == "д";
             }
-            
+
         }
 
-        static void WriteGroupsToFile(int number, int groupsCount)
+        static void WriteGroupsToFile(string fileName, int number, int groupsCount)
         {
-            string fileName = "output.txt";
+            Stopwatch swatch = new Stopwatch();
+            TimeSpan ts;
             using (StreamWriter sw = new StreamWriter(fileName))
             {
                 int counter = 0;
@@ -83,6 +114,8 @@ namespace HomeWork__6_6
 
                     if (numberInHalf >= 1)
                     {
+                        swatch.Reset();
+                        swatch.Start();
                         sw.Write($"Группа {++counter}: ");
                         for (int i = numberInHalf + 1; i <= number; i++)
                         {
@@ -90,7 +123,9 @@ namespace HomeWork__6_6
                         }
 
                         sw.WriteLine();
-                        Console.WriteLine($"Записано групп {counter}/{groupsCount}");
+                        swatch.Stop();
+                        ts = swatch.Elapsed;
+                        Console.WriteLine($"Записано групп {counter}/{groupsCount}. Затрачено {ts.Minutes} мин {ts.Seconds} сек {ts.Milliseconds} мс");
                     }
 
                     number = numberInHalf;
