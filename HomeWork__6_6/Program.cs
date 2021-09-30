@@ -20,12 +20,14 @@ namespace HomeWork__6_6
                 string data = Regex.Replace(File.ReadAllText("data.txt"), "[^0-9]", "", RegexOptions.IgnoreCase);
                 bool successParse = Int32.TryParse(data, out number);
 
-                if (!successParse) {
+                if (!successParse)
+                {
                     Console.WriteLine("Ошибка. Не удалось получить число из файла. Проверьте файл.");
                     return;
                 }
 
-                if (!IsValidNumber(number)) {
+                if (!IsValidNumber(number))
+                {
                     Console.WriteLine($"Ошибка. Полученное число из файла не удовлетворяет условиям задачи ({number}). Число должно быть в диапазоне от 1 до 1000000000.");
                     return;
                 }
@@ -33,7 +35,64 @@ namespace HomeWork__6_6
 
             Console.WriteLine();
             Console.WriteLine($"Число успешно считано/введено - {number}");
+
+
+
+            int groupsCount = GetGroupsCountByNumber(number);
+            Console.WriteLine($"Число групп  - {groupsCount}");
+
+            WriteGroupsToFile(number, groupsCount);
+
             Console.ReadKey();
+        }
+
+        static void WriteGroupsToFile(int number, int groupsCount)
+        {
+            string fileName = "output.txt";
+            using (StreamWriter sw = new StreamWriter(fileName))
+            {
+                int counter = 0;
+                while (number > 1)
+                {
+                    int numberInHalf = number / 2;
+
+                    if (numberInHalf >= 1)
+                    {
+                        sw.Write($"Группа {++counter}: ");
+                        for (int i = numberInHalf + 1; i <= number; i++)
+                        {
+                            sw.Write($"{i} ");
+                        }
+
+                        sw.WriteLine();
+                        Console.WriteLine($"Записано групп {counter}/{groupsCount}");
+                    }
+
+                    number = numberInHalf;
+                }
+
+                if (number == 1) {
+                    sw.WriteLine($"Группа {++counter}: {number}");
+                    Console.WriteLine($"Записано групп {counter}/{groupsCount}");
+                }
+
+            }
+
+            Console.WriteLine($"Все группы успешно записаны в файл {fileName}");
+        }
+
+        static int GetGroupsCountByNumber(int number)
+        {
+            int groupsCount = 1;
+            if (number < 2) return groupsCount;
+
+            while (number > 1)
+            {
+                groupsCount++;
+                number /= 2;
+            }
+
+            return groupsCount;
         }
 
         static int EnterNumber()
