@@ -8,10 +8,19 @@ namespace HomeWork__6_6
 {
     class Program
     {
+        /// <summary>
+        /// Название входящего файла с числом.
+        /// </summary>
         static readonly string inputFileName = "data.txt";
 
+        /// <summary>
+        /// Название файла результата, в котором будут содержаться группы.
+        /// </summary>
         static readonly string outputFileName = "output.txt";
 
+        /// <summary>
+        /// Название архива.
+        /// </summary>
         static readonly string archiveFileName = "output.zip";
 
         static void Main(string[] args)
@@ -50,6 +59,9 @@ namespace HomeWork__6_6
 
                 if (IsUserConfirm("Архивировать получившийся файл?"))
                 {
+                    if (File.Exists(archiveFileName)) File.Delete(archiveFileName);
+
+                    Console.WriteLine("Запуск архивации файла ...");
                     using (ZipArchive zipArchive = ZipFile.Open(archiveFileName, ZipArchiveMode.Create))
                     {
                         zipArchive.CreateEntryFromFile(outputFileName, outputFileName);
@@ -63,10 +75,43 @@ namespace HomeWork__6_6
             Console.ReadKey();
         }
 
+        /// <summary>
+        /// Ввод числа с клавиатуры
+        /// </summary>
+        /// <returns>Число</returns>
+        static int EnterNumber()
+        {
+            while (true)
+            {
+                string userInput = Console.ReadLine();
+                bool successParse = Int32.TryParse(userInput, out int parsedNumber);
+                if (!successParse)
+                {
+                    Console.WriteLine("Ошибка. Введите число");
+                    continue;
+                }
+
+                if (!IsValidNumber(parsedNumber))
+                {
+                    Console.WriteLine("Ошибка. Число должно быть в диапазоне от 1 до 1000000000.");
+                    continue;
+                }
+
+                return parsedNumber;
+            }
+        }
+
+        /// <summary>
+        /// Попытка получить число из файла.
+        /// </summary>
+        /// <param name="fileName">Название входящего файла</param>
+        /// <param name="number">Число</param>
+        /// <param name="message">Сообщение</param>
+        /// <returns>true, если число успешно получено. В другом случае - false. Как out параметры само число и сообщение, с описание почему число не было получено</returns>
         static bool TryGetNumberFromFile(string fileName, out int number, out string message)
         {
             message = "";
-            string data = Regex.Replace(File.ReadAllText("data.txt"), "[^0-9]", "", RegexOptions.IgnoreCase);
+            string data = Regex.Replace(File.ReadAllText(fileName), "[^0-9]", "", RegexOptions.IgnoreCase);
             bool successParse = Int32.TryParse(data, out number);
 
             if (!successParse)
@@ -84,6 +129,30 @@ namespace HomeWork__6_6
             return true;
         }
 
+        /// <summary>
+        /// Получение кол-ва групп.
+        /// </summary>
+        /// <param name="number">Число</param>
+        /// <returns>Кол-во групп</returns>
+        static int GetGroupsCountByNumber(int number)
+        {
+            int groupsCount = 1;
+            if (number < 2) return groupsCount;
+
+            while (number > 1)
+            {
+                groupsCount++;
+                number /= 2;
+            }
+
+            return groupsCount;
+        }
+
+        /// <summary>
+        /// Запрос подтверждения пользователя в консоле.
+        /// </summary>
+        /// <param name="message">Сообщение для пользователя</param>
+        /// <returns>true, если пользователь согласился. В другом случае - false</returns>
         static bool IsUserConfirm(string message)
         {
             Console.WriteLine(message + " Введите \"д\"(Да) или \"н\"(Нет):");
@@ -101,6 +170,12 @@ namespace HomeWork__6_6
 
         }
 
+        /// <summary>
+        /// Потоковая запись групп в файл.
+        /// </summary>
+        /// <param name="fileName">Название результирующего файла</param>
+        /// <param name="number">Число</param>
+        /// <param name="groupsCount">Кол-во групп</param>
         static void WriteGroupsToFile(string fileName, int number, int groupsCount)
         {
             Stopwatch swatch = new Stopwatch();
@@ -139,42 +214,11 @@ namespace HomeWork__6_6
             }
         }
 
-        static int GetGroupsCountByNumber(int number)
-        {
-            int groupsCount = 1;
-            if (number < 2) return groupsCount;
-
-            while (number > 1)
-            {
-                groupsCount++;
-                number /= 2;
-            }
-
-            return groupsCount;
-        }
-
-        static int EnterNumber()
-        {
-            while (true)
-            {
-                string userInput = Console.ReadLine();
-                bool successParse = Int32.TryParse(userInput, out int parsedNumber);
-                if (!successParse)
-                {
-                    Console.WriteLine("Ошибка. Введите число");
-                    continue;
-                }
-
-                if (!IsValidNumber(parsedNumber))
-                {
-                    Console.WriteLine("Ошибка. Число должно быть в диапазоне от 1 до 1000000000.");
-                    continue;
-                }
-
-                return parsedNumber;
-            }
-        }
-
+        /// <summary>
+        /// Валидация числа
+        /// </summary>
+        /// <param name="number">Число</param>
+        /// <returns>true или false</returns>
         static bool IsValidNumber(int number)
         {
             return (number > 0 && number < 1000000001);
