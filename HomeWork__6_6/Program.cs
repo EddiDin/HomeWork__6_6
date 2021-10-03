@@ -178,8 +178,6 @@ namespace HomeWork__6_6
         /// <param name="groupsCount">Кол-во групп</param>
         static void WriteGroupsToFile(string fileName, int number, int groupsCount)
         {
-            Stopwatch swatch = new Stopwatch();
-            TimeSpan ts;
             using (StreamWriter sw = new StreamWriter(fileName))
             {
                 int counter = 0;
@@ -189,8 +187,6 @@ namespace HomeWork__6_6
 
                     if (numberInHalf >= 1)
                     {
-                        swatch.Reset();
-                        swatch.Start();
                         sw.Write($"Группа {++counter}: ");
                         for (int i = numberInHalf + 1; i <= number; i++)
                         {
@@ -198,9 +194,6 @@ namespace HomeWork__6_6
                         }
 
                         sw.WriteLine();
-                        swatch.Stop();
-                        ts = swatch.Elapsed;
-                        Console.WriteLine($"Записано групп {counter}/{groupsCount}. Затрачено {ts.Minutes} мин {ts.Seconds} сек {ts.Milliseconds} мс");
                     }
 
                     number = numberInHalf;
@@ -209,7 +202,6 @@ namespace HomeWork__6_6
                 if (number == 1)
                 {
                     sw.WriteLine($"Группа {++counter}: {number}");
-                    Console.WriteLine($"Записано групп {counter}/{groupsCount}");
                 }
             }
         }
